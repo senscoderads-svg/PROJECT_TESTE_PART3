@@ -1,0 +1,18 @@
+apiVersion: 1
+
+datasources:
+  - name: PostgreSQL Wallets
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    database: wallets_db
+    user: postgres
+    secureJsonData:
+      password: postgres
+    jsonData:
+      sslmode: disable
+      maxOpenConns: 100
+      maxIdleConns: 100
+      connMaxLifetime: 600
+    isDefault: true
+    editable: true

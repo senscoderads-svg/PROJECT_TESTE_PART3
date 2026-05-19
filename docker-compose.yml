@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # PostgreSQL - Banco de dados do Projeto 2
+  postgres:
+    image: postgres:15-alpine
+    container_name: wallets_db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-wallets_db}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - grafana_network
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana_wallets
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboard.json:/etc/grafana/provisioning/dashboards/wallet-dashboard.json
+    depends_on:
+      - postgres
+    networks:
+      - grafana_network
+
+volumes:
+  postgres_data:
+  grafana_data:
+
+networks:
+  grafana_network:
+    driver: bridge

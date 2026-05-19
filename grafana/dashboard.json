@@ -1,0 +1,323 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": "PostgreSQL Wallets",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            }
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT \n    $__time(time),\n    saldo as \"Saldo\",\n    wallet_address\nFROM (\n    SELECT \n        w.address as wallet_address,\n        h.balance as saldo,\n        h.collected_at as time\n    FROM wallet_history h\n    JOIN wallets w ON h.wallet_id = w.id\n    WHERE h.collected_at >= now() - interval '30 days'\n    ORDER BY h.collected_at ASC, w.address ASC\n) data\nORDER BY time ASC",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "wallet_history",
+          "timeColumn": "time",
+          "timeColumnType": "timestamptz",
+          "where": []
+        }
+      ],
+      "title": "Série Temporal: Saldo das Wallets",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "PostgreSQL Wallets",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT \n    COALESCE(SUM(h.balance), 0)::text as \"Saldo Total\"\nFROM wallet_history h\nWHERE (h.wallet_id, h.collected_at) IN (\n    SELECT wallet_id, MAX(collected_at)\n    FROM wallet_history\n    WHERE collected_at >= now() - interval '1 day'\n    GROUP BY wallet_id\n)",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "wallet_history",
+          "timeColumn": "time",
+          "timeColumnType": "timestamptz",
+          "where": []
+        }
+      ],
+      "title": "Stat: Saldo Total Atual",
+      "type": "stat"
+    },
+    {
+      "datasource": "PostgreSQL Wallets",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "showHeader": true
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT \n    w.address as \"Endereço da Wallet\",\n    h.balance as \"Saldo Atual\",\n    h.collected_at as \"Data da Coleta\"\nFROM wallet_history h\nJOIN wallets w ON h.wallet_id = w.id\nWHERE (h.wallet_id, h.collected_at) IN (\n    SELECT wallet_id, MAX(collected_at)\n    FROM wallet_history\n    GROUP BY wallet_id\n)\nORDER BY h.collected_at DESC",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "wallet_history",
+          "timeColumn": "time",
+          "timeColumnType": "timestamptz",
+          "where": []
+        }
+      ],
+      "title": "Tabela: Última Coleta de Cada Wallet",
+      "type": "table"
+    },
+    {
+      "datasource": "PostgreSQL Wallets",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null,
+                "custom": {
+                  "hideFrom": {
+                    "tooltip": false,
+                    "viz": false,
+                    "legend": false
+                  }
+                }
+              },
+              {
+                "color": "yellow",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT \n    w.address as wallet_address,\n    ROUND(\n        ((saldo_atual - saldo_24h_atrás) / NULLIF(saldo_24h_atrás, 0)) * 100,\n        2\n    ) as variacao_percentual\nFROM (\n    SELECT \n        h_atual.wallet_id,\n        h_atual.balance as saldo_atual,\n        COALESCE(h_passado.balance, h_atual.balance) as saldo_24h_atrás\n    FROM (\n        SELECT wallet_id, balance, collected_at\n        FROM wallet_history\n        WHERE (wallet_id, collected_at) IN (\n            SELECT wallet_id, MAX(collected_at)\n            FROM wallet_history\n            WHERE collected_at >= now() - interval '1 day'\n            GROUP BY wallet_id\n        )\n    ) h_atual\n    LEFT JOIN (\n        SELECT wallet_id, balance, collected_at\n        FROM wallet_history\n        WHERE (wallet_id, collected_at) IN (\n            SELECT wallet_id, MAX(collected_at)\n            FROM wallet_history\n            WHERE collected_at >= now() - interval '2 days'\n            AND collected_at < now() - interval '1 day'\n            GROUP BY wallet_id\n        )\n    ) h_passado ON h_atual.wallet_id = h_passado.wallet_id\n) variacao_24h\nJOIN wallets w ON variacao_24h.wallet_id = w.id\nORDER BY variacao_percentual DESC",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "wallet_history",
+          "timeColumn": "time",
+          "timeColumnType": "timestamptz",
+          "where": []
+        }
+      ],
+      "title": "Gauge: Variação Percentual em 24h",
+      "type": "gauge"
+    }
+  ],
+  "refresh": "5m",
+  "schemaVersion": 27,
+  "style": "dark",
+  "tags": [
+    "wallets",
+    "monitoring",
+    "crypto"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Monitoramento de Wallets",
+  "uid": "wallet-monitoring-v1",
+  "version": 1
+}
