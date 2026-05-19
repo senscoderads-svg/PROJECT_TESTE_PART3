@@ -23,6 +23,7 @@ services:
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
       GF_INSTALL_PLUGINS: grafana-piechart-panel
+      GF_SERVER_ROOT_URL: "https://studious-fishstick-qvqjpg4jqpvrc9qxw-3000.app.github.dev"
     ports:
       - "${GRAFANA_PORT:-3000}:3000"
     volumes:
